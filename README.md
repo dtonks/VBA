@@ -1,2 +1,2 @@
 # VBA
-VBA Macros
+Excel VBA macros for automation.
