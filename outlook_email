@@ -1,0 +1,49 @@
+Sub SavePDF()
+
+'This macro opens the SaveAs option with the defult file path "you have to set this file path below" coverts the whole sheet into .pdf file format
+'And opens the .pdf to view <-- you can disable the view after covert option with lower code: OpenAfterPublish:=False
+
+    pdfName = ActiveSheet.Range("O11")
+    fileSaveName = ActiveSheet.Range("O10") + "\" + pdfName + ".pdf"
+    If fileSaveName <> False Then
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+        fileSaveName _
+        , Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas _
+        :=False, OpenAfterPublish:=False
+    End If
+    
+    ' MsgBox "File Saved " & " " & fileSaveName
+    
+End Sub
+
+
+Sub MailMessage()
+
+Dim xOutlookObj As Object
+Dim xFolder As String
+
+
+On Error GoTo ErrorHandler
+
+'Create Outlook email
+Set xOutlookObj = CreateObject("Outlook.Application")
+Set xEmailObj = xOutlookObj.CreateItem(0)
+
+With xEmailObj
+    .SentOnBehalfOfName = "stsaccountsreceivable@sonoma-county.org"
+    .Display
+    .To = ActiveSheet.Range("O20")
+    .CC = ""
+    .Subject = ActiveSheet.Range("O11")
+    .Attachments.Add ActiveSheet.Range("O10") + "\" + ActiveSheet.Range("O11") + ".pdf"
+    If DisplayEmail = False Then
+        '.Send
+    End If
+End With
+Exit Sub
+
+ErrorHandler:
+    MsgBox "Attachment is not in: " + ActiveSheet.Range("O10")
+    Exit Sub
+
+End Sub
