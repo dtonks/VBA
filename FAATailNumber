@@ -1,0 +1,633 @@
+Sub FAA_Registry_Search()
+
+    Dim IE As Object
+    Dim cel As Range
+    Dim selectedRange As Range
+    Dim i As Integer
+    Dim output As String
+    Dim doc As Object
+    Dim tr As Object
+    Dim Td As Object
+    
+    ' Create InternetExplorer Object
+    Set IE = CreateObject("InternetExplorer.Application")
+
+    ' You can uncoment Next line To see form results
+    IE.Visible = False
+    
+    ' Finding the selected row number so the formula knows where to output to.
+    Dim trial As String
+    trial = ActiveCell.Row
+    i = trial - 1
+    ' OLD METHOD
+    ' trial = ActiveCell.Address
+    ' trialIndex = Mid(trial, 4, 1)
+    ' i = trialIndex - 1
+
+    ' Loop through range of cells
+    Set selectedRange = Application.Selection
+    For Each cel In selectedRange.Cells
+    
+        ' Increment i by one to write on correct row
+        i = i + 1
+
+        ' URL to get data from
+        IE.Navigate "https://registry.faa.gov/AircraftInquiry/Search/NNumberResult?nNumberTxt=" + CStr(cel)
+    
+        ' Statusbar
+        Application.StatusBar = "Loading, Please wait..."
+
+        ' Wait while IE loading...
+        Do While IE.busy
+            Application.Wait DateAdd("s", 1, Now)
+        Loop
+
+        Application.StatusBar = "Searching for value. Please wait..."
+        
+        'if website cannot be accessed, redirect to eh
+        On Error GoTo eh
+    
+        ' Search webpage by ID and output data to cells on same row
+        Dim AircraftYear As String
+        AircraftYear = IE.Document.getElementsByTagName("TD")(25).textContent
+        AircraftYearOutput = "D" + CStr(i)
+        Range(AircraftYearOutput).Value = AircraftYear
+        
+        Dim AircraftMake As String
+        AircraftMake = IE.Document.getElementsByTagName("TD")(5).textContent
+        AircraftMakeOutput = "B" + CStr(i)
+        Range(AircraftMakeOutput).Value = AircraftMake
+        
+        Dim AircraftModel As String
+        AircraftModel = IE.Document.getElementsByTagName("TD")(9).textContent
+        AircraftModelOutput = "C" + CStr(i)
+        Range(AircraftModelOutput).Value = AircraftModel
+        
+        ' Dim AircraftType As String
+        ' AircraftType = UCase(IE.document.getElementsByTagName("TD")(13).textContent)
+        ' AircraftTypeOutput = "E" + CStr(i)
+        ' If AircraftType = "ROTORCRAFT" Then
+        '     AircraftType = "HELICOPTER"
+        '     Range(AircraftTypeOutput).Value = AircraftType
+        ' Else
+        '     Range(AircraftTypeOutput).Value = AircraftType
+        ' End If
+
+        ' Dim TailNumber As String
+        ' TailNumber = cel
+        ' TailNumberOutput = "F" + CStr(i)
+        ' Range(TailNumberOutput).Value = TailNumber
+
+        Dim RegisteredName As String
+        RegisteredName = UCase(IE.Document.getElementsByTagName("TD")(33).textContent)
+        RegisteredNameOutput = "E" + CStr(i)
+        Range(RegisteredNameOutput).Value = RegisteredName
+        
+        Dim Street As String
+        Street = IE.Document.getElementsByTagName("TD")(35).textContent
+        
+        Dim City As String
+        City = IE.Document.getElementsByTagName("TD")(37).textContent
+        
+        Dim State As String
+        State = IE.Document.getElementsByTagName("TD")(39).textContent
+        
+        Dim ZipCode As String
+        ZipCode = IE.Document.getElementsByTagName("TD")(43).textContent
+        
+        Dim Address As String
+        Address = RTrim(Street) & ", " & RTrim(City) & ", " & RTrim(State) & " " & RTrim(ZipCode)
+        AddressOutput = "F" + CStr(i)
+        Range(AddressOutput).Value = Address
+        
+        Dim Status As String
+        Status = IE.Document.getElementsByTagName("p")(1).textContent
+        StatusOutput = "G" + CStr(i)
+        Range(StatusOutput).Value = Status
+        
+        ' Added random Explorer search to fix a bug
+        ' where column G was not being noticed as an error
+        Dim thef As String
+        thef = IE.Document.getElementsByTagName("TD")(41).textContent
+        
+        ' Quit Internet Explorer
+        ' IE.Quit
+        ' Set IE = Nothing
+        
+        Next cel
+' Done:
+        IE.Quit
+        Set IE = Nothing
+        
+        Exit Sub
+        
+        IE.Quit
+        Set IE = Nothing
+        
+
+    
+eh:
+        ' Will output "Search Manually" if FAA website data is not mineable
+        AircraftYearOutput = "B" + CStr(i)
+        Range(AircraftYearOutput).Value = "*Search Manually*"
+
+        MakeModelOutput = "C" + CStr(i)
+        Range(MakeModelOutput).Value = "*Search Manually*"
+        
+        AircraftTypeOutput = "D" + CStr(i)
+        Range(AircraftTypeOutput).Value = "*Search Manually*"
+
+        TailNumberOutput = "E" + CStr(i)
+        Range(TailNumberOutput).Value = cel
+
+        RegisteredNameOutput = "F" + CStr(i)
+        Range(RegisteredNameOutput).Value = "*Search Manually*"
+        
+        RegistrationExpiresOutput = "G" + CStr(i)
+        Range(RegistrationExpiresOutput).Value = "*Search Manually*"
+        
+        ' Go back into loop after error
+        Resume Next
+        
+        ' Show IE
+        IE.Visible = False
+
+        ' Clean up
+        IE.Quit
+        Set IE = Nothing
+
+        Application.StatusBar = ""
+
+End Sub
+
+
+
+Sub reservedDeregistered()
+
+    Dim IE As Object
+    Dim cel As Range
+    Dim selectedRange As Range
+    Dim i As Integer
+    Dim output As String
+    Dim doc As Object
+    Dim tr As Object
+    Dim Td As Object
+    
+    ' Create InternetExplorer Object
+    Set IE = CreateObject("InternetExplorer.Application")
+
+    ' You can uncoment Next line To see form results
+    IE.Visible = False
+    
+    ' Finding the selected row number so the formula knows where to output to.
+    Dim trial As String
+    trial = ActiveCell.Row
+    i = trial - 1
+    ' OLD METHOD
+    ' trial = ActiveCell.Address
+    ' trialIndex = Mid(trial, 4, 1)
+    ' i = trialIndex - 1
+
+    ' Loop through range of cells
+    Set selectedRange = Application.Selection
+    For Each cel In selectedRange.Cells
+    
+        ' Increment i by one to write on correct row
+        i = i + 1
+        
+        ' URL to get data from
+        IE.Navigate "https://registry.faa.gov/AircraftInquiry/Search/NNumberResult?nNumberTxt=" + CStr(cel)
+    
+        ' Statusbar
+        Application.StatusBar = "Loading, Please wait..."
+
+        ' Wait while IE loading...
+        Do While IE.busy
+            Application.Wait DateAdd("s", 1, Now)
+        Loop
+
+        Application.StatusBar = "Searching for value. Please wait..."
+        
+        'if website cannot be accessed, redirect to eh
+        On Error GoTo eh
+    
+        ' Search webpage by ID and output data to cells on same row
+        Dim AircraftYear As String
+        AircraftYear = IE.Document.getElementsByTagName("TD")(43).textContent
+        AircraftYearOutput = "D" + CStr(i)
+        Range(AircraftYearOutput).Value = AircraftYear
+        
+        Dim AircraftMake As String
+        AircraftMake = IE.Document.getElementsByTagName("TD")(35).textContent
+        AircraftMakeOutput = "B" + CStr(i)
+        Range(AircraftMakeOutput).Value = AircraftMake
+        
+        Dim AircraftModel As String
+        AircraftModel = IE.Document.getElementsByTagName("TD")(39).textContent
+        AircraftModelOutput = "C" + CStr(i)
+        Range(AircraftModelOutput).Value = AircraftModel
+        
+        ' Dim AircraftType As String
+        ' AircraftType = UCase(IE.document.getElementsByTagName("TD")(13).textContent)
+        ' AircraftTypeOutput = "E" + CStr(i)
+        ' If AircraftType = "ROTORCRAFT" Then
+        '     AircraftType = "HELICOPTER"
+        '     Range(AircraftTypeOutput).Value = AircraftType
+        ' Else
+        '     Range(AircraftTypeOutput).Value = AircraftType
+        ' End If
+
+        ' Dim TailNumber As String
+        ' TailNumber = cel
+        ' TailNumberOutput = "F" + CStr(i)
+        ' Range(TailNumberOutput).Value = TailNumber
+
+        Dim RegisteredName As String
+        RegisteredName = UCase(IE.Document.getElementsByTagName("TD")(57).textContent)
+        RegisteredNameOutput = "E" + CStr(i)
+        Range(RegisteredNameOutput).Value = RegisteredName
+        
+        Dim Street As String
+        Street = IE.Document.getElementsByTagName("TD")(61).textContent
+        
+        Dim City As String
+        City = IE.Document.getElementsByTagName("TD")(65).textContent
+        
+        Dim State As String
+        State = IE.Document.getElementsByTagName("TD")(69).textContent
+        
+        Dim ZipCode As String
+        ZipCode = IE.Document.getElementsByTagName("TD")(71).textContent
+        
+        Dim Address As String
+        Address = RTrim(Street) & ", " & RTrim(City) & ", " & RTrim(State) & " " & RTrim(ZipCode)
+        AddressOutput = "F" + CStr(i)
+        Range(AddressOutput).Value = Address
+        
+        Dim Status As String
+        Status = IE.Document.getElementsByTagName("p")(1).textContent
+        StatusOutput = "G" + CStr(i)
+        Range(StatusOutput).Value = Status
+        
+        ' Added random Explorer search to fix a bug
+        ' where column G was not being noticed as an error
+        Dim thef As String
+        thef = IE.Document.getElementsByTagName("TD")(41).textContent
+        
+        ' Quit Internet Explorer
+        ' IE.Quit
+        ' Set IE = Nothing
+        
+        Next cel
+' Done:
+        IE.Quit
+        Set IE = Nothing
+        
+        Exit Sub
+        
+        IE.Quit
+        Set IE = Nothing
+        
+
+    
+eh:
+        ' Will output "Search Manually" if FAA website data is not mineable
+        AircraftYearOutput = "B" + CStr(i)
+        Range(AircraftYearOutput).Value = "*Search Manually*"
+
+        MakeModelOutput = "C" + CStr(i)
+        Range(MakeModelOutput).Value = "*Search Manually*"
+        
+        AircraftTypeOutput = "D" + CStr(i)
+        Range(AircraftTypeOutput).Value = "*Search Manually*"
+
+        TailNumberOutput = "E" + CStr(i)
+        Range(TailNumberOutput).Value = cel
+
+        RegisteredNameOutput = "F" + CStr(i)
+        Range(RegisteredNameOutput).Value = "*Search Manually*"
+        
+        RegistrationExpiresOutput = "G" + CStr(i)
+        Range(RegistrationExpiresOutput).Value = "*Search Manually*"
+        
+        ' Go back into loop after error
+        Resume Next
+        
+        ' Show IE
+        IE.Visible = False
+
+        ' Clean up
+        IE.Quit
+        Set IE = Nothing
+
+        Application.StatusBar = ""
+
+End Sub
+
+
+Sub withKits()
+
+    Dim IE As Object
+    Dim cel As Range
+    Dim selectedRange As Range
+    Dim i As Integer
+    Dim output As String
+    Dim doc As Object
+    Dim tr As Object
+    Dim Td As Object
+    
+    ' Create InternetExplorer Object
+    Set IE = CreateObject("InternetExplorer.Application")
+
+    ' You can uncoment Next line To see form results
+    IE.Visible = False
+    
+    ' Finding the selected row number so the formula knows where to output to.
+    Dim trial As String
+    trial = ActiveCell.Row
+    i = trial - 1
+    ' OLD METHOD
+    ' trial = ActiveCell.Address
+    ' trialIndex = Mid(trial, 4, 1)
+    ' i = trialIndex - 1
+
+    ' Loop through range of cells
+    Set selectedRange = Application.Selection
+    For Each cel In selectedRange.Cells
+    
+        ' Increment i by one to write on correct row
+        i = i + 1
+        
+        ' URL to get data from
+        IE.Navigate "https://registry.faa.gov/AircraftInquiry/Search/NNumberResult?nNumberTxt=" + CStr(cel)
+    
+        ' Statusbar
+        Application.StatusBar = "Loading, Please wait..."
+
+        ' Wait while IE loading...
+        Do While IE.busy
+            Application.Wait DateAdd("s", 1, Now)
+        Loop
+
+        Application.StatusBar = "Searching for value. Please wait..."
+        
+        'if website cannot be accessed, redirect to eh
+        On Error GoTo eh
+    
+        ' Search webpage by ID and output data to cells on same row
+        Dim AircraftYear As String
+        AircraftYear = IE.Document.getElementsByTagName("TD")(25).textContent
+        AircraftYearOutput = "D" + CStr(i)
+        Range(AircraftYearOutput).Value = AircraftYear
+        
+        Dim AircraftMake As String
+        AircraftMake = IE.Document.getElementsByTagName("TD")(5).textContent
+        AircraftMakeOutput = "B" + CStr(i)
+        Range(AircraftMakeOutput).Value = AircraftMake
+        
+        Dim AircraftModel As String
+        AircraftModel = IE.Document.getElementsByTagName("TD")(9).textContent
+        AircraftModelOutput = "C" + CStr(i)
+        Range(AircraftModelOutput).Value = AircraftModel
+        
+        ' Dim AircraftType As String
+        ' AircraftType = UCase(IE.document.getElementsByTagName("TD")(13).textContent)
+        ' AircraftTypeOutput = "E" + CStr(i)
+        ' If AircraftType = "ROTORCRAFT" Then
+        '     AircraftType = "HELICOPTER"
+        '     Range(AircraftTypeOutput).Value = AircraftType
+        ' Else
+        '     Range(AircraftTypeOutput).Value = AircraftType
+        ' End If
+
+        ' Dim TailNumber As String
+        ' TailNumber = cel
+        ' TailNumberOutput = "F" + CStr(i)
+        ' Range(TailNumberOutput).Value = TailNumber
+
+        Dim RegisteredName As String
+        RegisteredName = UCase(IE.Document.getElementsByTagName("TD")(37).textContent)
+        RegisteredNameOutput = "E" + CStr(i)
+        Range(RegisteredNameOutput).Value = RegisteredName
+        
+        Dim Street As String
+        Street = IE.Document.getElementsByTagName("TD")(39).textContent
+        
+        Dim City As String
+        City = IE.Document.getElementsByTagName("TD")(41).textContent
+        
+        Dim State As String
+        State = IE.Document.getElementsByTagName("TD")(43).textContent
+        
+        Dim ZipCode As String
+        ZipCode = IE.Document.getElementsByTagName("TD")(47).textContent
+        
+        Dim Address As String
+        Address = RTrim(Street) & ", " & RTrim(City) & ", " & RTrim(State) & " " & RTrim(ZipCode)
+        AddressOutput = "F" + CStr(i)
+        Range(AddressOutput).Value = Address
+        
+        Dim Status As String
+        Status = IE.Document.getElementsByTagName("p")(1).textContent
+        StatusOutput = "G" + CStr(i)
+        Range(StatusOutput).Value = Status
+        
+        ' Added random Explorer search to fix a bug
+        ' where column G was not being noticed as an error
+        Dim thef As String
+        thef = IE.Document.getElementsByTagName("TD")(41).textContent
+        
+        ' Quit Internet Explorer
+        ' IE.Quit
+        ' Set IE = Nothing
+        
+        Next cel
+' Done:
+        IE.Quit
+        Set IE = Nothing
+        
+        Exit Sub
+        
+        IE.Quit
+        Set IE = Nothing
+        
+
+    
+eh:
+        ' Will output "Search Manually" if FAA website data is not mineable
+        AircraftYearOutput = "B" + CStr(i)
+        Range(AircraftYearOutput).Value = "*Search Manually*"
+
+        MakeModelOutput = "C" + CStr(i)
+        Range(MakeModelOutput).Value = "*Search Manually*"
+        
+        AircraftTypeOutput = "D" + CStr(i)
+        Range(AircraftTypeOutput).Value = "*Search Manually*"
+
+        TailNumberOutput = "E" + CStr(i)
+        Range(TailNumberOutput).Value = cel
+
+        RegisteredNameOutput = "F" + CStr(i)
+        Range(RegisteredNameOutput).Value = "*Search Manually*"
+        
+        RegistrationExpiresOutput = "G" + CStr(i)
+        Range(RegistrationExpiresOutput).Value = "*Search Manually*"
+        
+        ' Go back into loop after error
+        Resume Next
+        
+        ' Show IE
+        IE.Visible = False
+
+        ' Clean up
+        IE.Quit
+        Set IE = Nothing
+
+        Application.StatusBar = ""
+
+End Sub
+
+Sub DeregisteredFAASearch()
+
+    Dim IE As Object
+    Dim cel As Range
+    Dim selectedRange As Range
+    Dim i As Integer
+    Dim output As String
+    Dim doc As Object
+    Dim tr As Object
+    Dim Td As Object
+    
+    ' Create InternetExplorer Object
+    Set IE = CreateObject("InternetExplorer.Application")
+
+    ' You can uncoment Next line To see form results
+    IE.Visible = False
+    
+    ' Finding the selected row number so the formula knows where to output to.
+    Dim trial As String
+    trial = ActiveCell.Row
+    i = trial - 1
+    ' OLD METHOD
+    ' trial = ActiveCell.Address
+    ' trialIndex = Mid(trial, 4, 1)
+    ' i = trialIndex - 1
+    
+    ' Loop through range of cells
+    Set selectedRange = Application.Selection
+    For Each cel In selectedRange.Cells
+    
+        ' Increment i by one to write on correct row
+        i = i + 1
+        
+        ' URL to get data from
+        IE.Navigate "https://registry.faa.gov/AircraftInquiry/Search/NNumberResult?nNumberTxt=" + CStr(cel)
+    
+        ' Statusbar
+        Application.StatusBar = "Loading, Please wait..."
+
+        ' Wait while IE loading...
+        Do While IE.busy
+            Application.Wait DateAdd("s", 1, Now)
+        Loop
+
+        Application.StatusBar = "Searching for value. Please wait..."
+        
+        'if website cannot be accessed, redirect to eh
+        On Error GoTo eh
+    
+        ' Search webpage by ID and output data to cells on same row
+        Dim AircraftYear As String
+        AircraftYear = IE.Document.getElementsByTagName("TD")(15).textContent
+        AircraftYearOutput = "D" + CStr(i)
+        Range(AircraftYearOutput).Value = AircraftYear
+        
+        Dim AircraftMake As String
+        AircraftMake = IE.Document.getElementsByTagName("TD")(7).textContent
+        AircraftMakeOutput = "B" + CStr(i)
+        Range(AircraftMakeOutput).Value = AircraftMake
+        
+        Dim AircraftModel As String
+        AircraftModel = IE.Document.getElementsByTagName("TD")(11).textContent
+        AircraftModelOutput = "C" + CStr(i)
+        Range(AircraftModelOutput).Value = AircraftModel
+
+        Dim RegisteredName As String
+        RegisteredName = UCase(IE.Document.getElementsByTagName("TD")(64).textContent)
+        RegisteredNameOutput = "E" + CStr(i)
+        Range(RegisteredNameOutput).Value = RegisteredName
+        
+        Dim Street As String
+        Street = IE.Document.getElementsByTagName("TD")(33).textContent
+        
+        Dim City As String
+        City = IE.Document.getElementsByTagName("TD")(37).textContent
+        
+        Dim State As String
+        State = IE.Document.getElementsByTagName("TD")(41).textContent
+        
+        Dim ZipCode As String
+        ZipCode = IE.Document.getElementsByTagName("TD")(43).textContent
+        
+        Dim Address As String
+        Address = RTrim(Street) & ", " & RTrim(City) & ", " & RTrim(State) & " " & RTrim(ZipCode)
+        AddressOutput = "F" + CStr(i)
+        Range(AddressOutput).Value = Address
+        
+        Dim Status As String
+        Status = IE.Document.getElementsByTagName("p")(1).textContent
+        StatusOutput = "H" + CStr(i)
+        Range(StatusOutput).Value = Status
+        
+        ' Added random Explorer search to fix a bug
+        ' where column G was not being noticed as an error
+        Dim thef As String
+        thef = IE.Document.getElementsByTagName("TD")(41).textContent
+        
+        ' Quit Internet Explorer
+        ' IE.Quit
+        ' Set IE = Nothing
+        
+        Next cel
+' Done:
+        
+        IE.Quit
+        Set IE = Nothing
+        
+        Exit Sub
+        
+        IE.Quit
+        Set IE = Nothing
+eh:
+        ' Will output "Search Manually" if FAA website data is not mineable
+        AircraftYearOutput = "B" + CStr(i)
+        Range(AircraftYearOutput).Value = "*Search Manually*"
+
+        MakeModelOutput = "C" + CStr(i)
+        Range(MakeModelOutput).Value = "*Search Manually*"
+        
+        AircraftTypeOutput = "D" + CStr(i)
+        Range(AircraftTypeOutput).Value = "*Search Manually*"
+
+        TailNumberOutput = "E" + CStr(i)
+        Range(TailNumberOutput).Value = cel
+
+        RegisteredNameOutput = "F" + CStr(i)
+        Range(RegisteredNameOutput).Value = "*Search Manually*"
+        
+        RegistrationExpiresOutput = "G" + CStr(i)
+        Range(RegistrationExpiresOutput).Value = "*Search Manually*"
+        
+        ' Go back into loop after error
+        Resume Next
+        
+        ' Show IE
+        IE.Visible = False
+
+        ' Clean up
+        IE.Quit
+        Set IE = Nothing
+
+        Application.StatusBar = ""
+
+End Sub
