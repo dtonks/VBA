@@ -1,0 +1,81 @@
+Sub nauticalMiles()
+
+    Dim IE As Object
+    Dim cel As Range
+    Dim selectedRange As Range
+    Dim i As Integer
+    Dim output As String
+    Dim doc As Object
+    
+
+    ' Create InternetExplorer Object
+    Set IE = CreateObject("InternetExplorer.Application")
+
+    ' You can uncoment Next line To see form results
+    IE.Visible = False
+    
+    ' Finding the selected row number so the formula knows where to output to.
+    Dim trial As String
+    trial = ActiveCell.Row
+    i = trial - 1
+
+    ' Loop through range of cells
+    Set selectedRange = Application.Selection
+    For Each cel In selectedRange.Cells
+    
+        ' Increment i by one to write on correct row
+        i = i + 1
+        
+        ' URL to get data from
+        IE.Navigate cel
+        
+        ' Statusbar
+        Application.StatusBar = "Loading, Please wait..."
+
+        ' Wait while IE loading...
+        Do While IE.busy
+            Application.Wait DateAdd("s", 4, Now)
+        Loop
+        
+        Application.StatusBar = "Searching for value. Please wait..."
+        
+        'if website cannot be accessed, redirect to eh
+        On Error GoTo eh
+    
+        ' Search webpage by ID and output data to cells on same row
+        Dim distance As String
+        distance = IE.Document.getElementbyID("status").innertext
+        miles = Trim(Mid(distance, InStr(distance, ":") + 1, InStr(distance, "miles") - InStr(distance, ":") - 1)) * 1
+        nm = miles / 1.1508
+        distanceOutput = "F" + CStr(i)
+        Range(distanceOutput).Value = Round(nm, 2)
+        Next cel
+' Done:
+        ' IE.Quit
+        ' Set IE = Nothing
+        
+        Exit Sub
+        
+        ' IE.Quit
+        Set IE = Nothing
+        
+
+    
+eh:
+        ' Will output "Search Manually" if FAA website data is not mineable
+        distanceOutput = "F" + CStr(i)
+        Range(distanceOutput).Value = "Check Address/ Search Manually"
+        
+        ' Go back into loop after error
+        Resume Next
+        
+        ' Show IE
+        IE.Visible = False
+
+        ' Clean up
+        IE.Quit
+        Set IE = Nothing
+
+        Application.StatusBar = ""
+        
+End Sub
